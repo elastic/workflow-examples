@@ -1,0 +1,38 @@
+version: "1"
+name: Send email
+enabled: true
+triggers:
+  - type: manual
+    enabled: true
+inputs:
+  - name: email_to
+    default: some.email@email.com
+    type: string
+  - name: email_subject
+    default: hello
+    type: string
+  - name: email_body
+    default: hello
+    type: string
+consts:
+  kibanaurl: http://localhost:5601
+  kibanaauth: Basic xxxxxxxx
+  kibanaemailconnector: 1234-5678-abc123-mnop
+steps:
+  - name: send-email
+    type: http
+    with:
+      url: "{{consts.kibanaurl}}/api/actions/connector/{{consts.kibanaemailconnector}}/_execute"
+      method: POST
+      headers:
+        Content-Type: application/json
+        Authorization: "{{ consts.kibanaauth }}"
+        kbn-xsrf: kibana
+      body:
+        params:
+          message: "{{inputs.email_body}}"
+          to: - 
+            "{{inputs.email_to}}"
+          subject: "{{inputs.email_subject}}"
+      timeout: 30s
+

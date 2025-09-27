@@ -1,0 +1,39 @@
+version: "1"
+name: Search Splunk
+enabled: true
+triggers:
+  - type: manual
+    enabled: true
+inputs:
+  - name: splunk_query
+    default: source="ep1data.json" host="SRVWIN01" index="omm-ep1" sourcetype="OMM"
+    type: string
+consts:
+  splunk_url: https://splunkurl.com:8089
+  splunk_auth: Basic xxxxxxxxxx
+steps:
+  - name: send_search_to_splunk
+    type: http
+    with:
+      url: "{{consts.splunk_url}}/services/search/jobs"
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        Authorization: "{{consts.splunk_auth}}"
+      body: "search={{ ('search ' ~ inputs.splunk_query) | urlencode }}&count=0&output_mode=json"
+      timeout: 30s
+  - name: wait_for_search
+    type: wait
+    with:
+      duration: 20s
+  - name: get_splunk_results
+    type: http
+    with:
+      url: "{{consts.splunk_url}}/services/search/jobs/{{steps.send_search_to_splunk.output.data.sid}}/results?output_mode=json&count=0"
+      method: GET
+      headers:
+        Authorization: "{{consts.splunk_auth}}"
+      timeout: 30s  
+
+
+      

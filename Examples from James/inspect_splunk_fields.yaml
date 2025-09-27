@@ -1,0 +1,39 @@
+version: "1"
+name: Inspect Splunk Fields
+enabled: true
+triggers:
+  - type: manual
+    enabled: true
+inputs:
+  - name: index_name
+    default: omm-ep1
+    type: string
+consts:
+  splunk_url: https://splunkurl.com:8089
+  splunk_auth: Basic xxxxxxxxxx
+steps:
+  - name: check_field_list
+    type: http
+    with:
+      url: "{{consts.splunk_url}}/services/search/jobs"
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        Authorization: "{{consts.splunk_auth}}"
+      body: "search={{ ('search index=' ~ inputs.index_name ~ ' | fieldsummary maxvals=0 | table field count') | urlencode }}&count=0&output_mode=json"
+      timeout: 30s
+  - name: wait_for_search
+    type: wait
+    with:
+      duration: 2s
+  - name: get-splunk-results
+    type: http
+    with:
+      url: "{{consts.splunk_url}}/services/search/jobs/{{steps.check_field_list.output.data.sid}}/results?output_mode=json&count=0"
+      method: GET
+      headers:
+        Authorization: "{{consts.splunk_auth}}"
+      timeout: 30s  
+
+
+      

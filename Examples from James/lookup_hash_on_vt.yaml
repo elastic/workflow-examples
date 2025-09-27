@@ -1,0 +1,22 @@
+version: "1"
+name: Send Hash to Virustotal
+enabled: true
+triggers:
+  - type: manual
+    enabled: true
+inputs:
+  - name: vt_hash
+    default: ff808d0a12676bfac88fd26f955154f8884f2bb7c534b9936510fd6296c543e8
+    type: string
+consts:
+  vtkey: xxxxxxxxxxxxx
+steps:
+  - name: hash-lookup-vt
+    type: http
+    with:
+      url: https://www.virustotal.com/api/v3/search?query={{inputs.vt_hash}}
+      method: GET
+      headers:
+        Content-Type: application/json
+        x-apikey: "{{ consts.vtkey }}"
+      timeout: 30s

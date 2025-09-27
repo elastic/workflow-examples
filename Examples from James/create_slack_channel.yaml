@@ -1,0 +1,25 @@
+version: "1"
+name: Create Slack Channel
+enabled: true
+triggers:
+  - type: manual
+    enabled: true
+inputs:
+  - name: channel_name
+    default: test-channel
+    type: string
+consts:
+  slack_token: xoxb-xxxxxxxxxxxxxxxx
+steps:
+  - name: create-slack-channel
+    type: http
+    with:
+      url: https://slack.com/api/conversations.create
+      method: POST
+      headers:
+        Content-Type: application/json; charset=utf-8
+        Authorization: Bearer {{ consts.slack_token }}
+      body:
+        name: "{{ inputs.channel_name }}"
+        is_private: false
+      timeout: 30s
